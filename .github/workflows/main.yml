@@ -43,7 +43,7 @@ jobs:
 
     # Step 6: Upload Kubernetes manifests
     - name: Upload Kubernetes manifests
-      uses: actions/artifact@v2  # Corrected to @actions/artifact@v2
+      uses: actions/upload-artifact@v3  # Corrected action for uploading artifacts
       with:
         name: manifests
         path: ./manifests/
@@ -73,14 +73,21 @@ jobs:
       run: |
         az aks get-credentials --resource-group <your-resource-group> --name <your-aks-cluster> --admin
 
-    # Step 5: Deploy to AKS using kubectl
+    # Step 5: Download Kubernetes manifests
+    - name: Download Kubernetes manifests
+      uses: actions/download-artifact@v3  # Added step to download the artifact
+      with:
+        name: manifests
+        path: ./manifests/
+
+    # Step 6: Deploy to AKS using kubectl
     - name: Deploy to AKS
       run: |
         kubectl apply -f ./manifests/deployment.yml
         kubectl apply -f ./manifests/service.yml
         kubectl rollout status deployment/firstproject-deployment  # Optional: check deployment status
 
-    # Step 6: Clean up
+    # Step 7: Clean up
     - name: Clean up
       run: |
         rm -rf ./manifests/
