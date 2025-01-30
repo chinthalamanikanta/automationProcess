@@ -8,7 +8,7 @@ variables:
   dockerRegistryServiceConnection: '71c49c92-7363-447c-b33b-8e30553f2ba2'
   imageRepository: 'firstproject'
   containerRegistry: 'manicontainer.azurecr.io'
-  dockerfilePath: 'Dockerfile'
+  dockerfilePath: 'subfolder/Dockerfile'
   tag: '$(Build.BuildId)'
   vmImageName: 'ubuntu-latest'
 
