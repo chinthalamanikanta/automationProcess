@@ -1,59 +1,86 @@
-trigger:
-- main
+name: Build and Deploy to AKS
 
-resources:
-- repo: self
+# Trigger when changes are pushed to the main branch
+on:
+  push:
+    branches:
+      - main
 
-variables:
-  dockerRegistryServiceConnection: '71c49c92-7363-447c-b33b-8e30553f2ba2'
-  imageRepository: 'firstproject'
-  containerRegistry: 'manicontainer.azurecr.io'
-  dockerfilePath: 'subfolder/Dockerfile'
-  tag: '$(Build.BuildId)'
-  vmImageName: 'ubuntu-latest'
+jobs:
+  # Build job
+  build:
+    runs-on: ubuntu-latest
 
-stages:
-- stage: Build
-  displayName: Build stage
-  jobs:
-  - job: Build
-    displayName: Build
-    pool:
-      vmImage: $(vmImageName)
     steps:
-    - task: Docker@2
-      displayName: Build and push an image to container registry
-      inputs:
-        command: buildAndPush
-        repository: $(imageRepository)
-        dockerfile: $(dockerfilePath)
-        containerRegistry: $(dockerRegistryServiceConnection)
-        tags: |
-          $(tag)
-          latest
+    # Step 1: Checkout code
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-    - upload: manifests
-      artifact: manifests
+    # Step 2: Set up Docker Buildx for multi-platform support
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
 
-- stage: Deploy
-  displayName: Deploy stage
-  dependsOn: Build
-  jobs:
-  - deployment: Deploy
-    displayName: Deploy
-    pool:
-      vmImage: $(vmImageName)
-    environment: 'FirstProject.default'
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - task: KubernetesManifest@0
-            displayName: Deploy to Kubernetes cluster
-            inputs:
-              action: deploy
-              manifests: |
-                $(Pipeline.Workspace)/manifests/deployment.yml
-                $(Pipeline.Workspace)/manifests/service.yml
-              containers: |
-                $(containerRegistry)/$(imageRepository):$(tag)
+    # Step 3: Log in to Azure
+    - name: Log in to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}  # Create this secret in GitHub (service principal)
+
+    # Step 4: Log in to Azure Container Registry
+    - name: Log in to ACR
+      uses: azure/docker-login@v1
+      with:
+        login-server: manicontainer.azurecr.io
+        username: ${{ secrets.ACR_USERNAME }}
+        password: ${{ secrets.ACR_PASSWORD }}
+
+    # Step 5: Build and push Docker image to ACR
+    - name: Build and push Docker image to ACR
+      run: |
+        docker build -f subfolder/Dockerfile -t manicontainer.azurecr.io/firstproject:${{ github.sha }} .
+        docker push manicontainer.azurecr.io/firstproject:${{ github.sha }}
+        docker push manicontainer.azurecr.io/firstproject:latest
+
+    # Step 6: Upload manifests (if needed)
+    - name: Upload Kubernetes manifests
+      uses: actions/upload-artifact@v2
+      with:
+        name: manifests
+        path: ./manifests/
+
+  # Deploy job
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build  # This job depends on the build job
+
+    steps:
+    # Step 1: Checkout code
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    # Step 2: Set up Azure login
+    - name: Log in to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}  # Use same service principal
+
+    # Step 3: Set up kubectl
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v1
+
+    # Step 4: Configure kubectl to access AKS cluster
+    - name: Get AKS credentials
+      run: |
+        az aks get-credentials --resource-group <your-resource-group> --name <your-aks-cluster> --admin
+
+    # Step 5: Deploy to AKS using kubectl
+    - name: Deploy to AKS
+      run: |
+        kubectl apply -f ./manifests/deployment.yml
+        kubectl apply -f ./manifests/service.yml
+        kubectl rollout status deployment/firstproject-deployment  # Optional: check deployment status
+
+    # Step 6: Clean up
+    - name: Clean up
+      run: |
+        rm -rf ./manifests/
