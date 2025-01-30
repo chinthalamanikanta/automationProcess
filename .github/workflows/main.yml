@@ -43,7 +43,7 @@ jobs:
 
     # Step 6: Upload Kubernetes manifests
     - name: Upload Kubernetes manifests
-      uses: actions/upload-artifact@v2  # Updated to v3
+      uses: actions/upload-artifact@v3  # Updated to v3
       with:
         name: manifests
         path: ./manifests/
