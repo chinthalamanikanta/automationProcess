@@ -41,9 +41,9 @@ jobs:
         docker push manicontainer.azurecr.io/firstproject:${{ github.sha }}
         docker push manicontainer.azurecr.io/firstproject:latest
 
-    # Step 6: Upload manifests (if needed)
+    # Step 6: Upload Kubernetes manifests
     - name: Upload Kubernetes manifests
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3  # Updated to v3
       with:
         name: manifests
         path: ./manifests/
