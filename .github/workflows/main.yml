@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4  # Use v4 to ensure the latest checkout functionality
 
       # Set up Java using Temurin (Adoptium's updated distribution name)
       - name: Set up Java
