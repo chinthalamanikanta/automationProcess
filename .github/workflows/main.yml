@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # Use v4 to ensure the latest checkout functionality
+        uses: actions/checkout@v4
 
       # Set up Java using Temurin (Adoptium's updated distribution name)
       - name: Set up Java
@@ -49,7 +49,7 @@ jobs:
 
     steps:
       - name: Set up kubectl
-        uses: azure/setup-kubectl@v2
+        uses: azure/setup-kubectl@v1  # Use v1 instead of v2 for setup-kubectl action
         with:
           kubeconfig: ${{ secrets.AKS_KUBECONFIG }}
 
