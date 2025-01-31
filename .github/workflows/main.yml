@@ -1,95 +1,60 @@
 name: Build and Deploy to AKS
-
-# Trigger when changes are pushed to the main branch
+ 
 on:
   push:
     branches:
       - main
-
-permissions:
-  id-token: write
-  contents: read
-
+ 
 jobs:
-  # Build job
   build:
     runs-on: ubuntu-latest
-
+ 
     steps:
-    # Step 1: Checkout code
-    - name: Checkout repository
-      uses: actions/checkout@v2
-
-    # Step 2: Set up Docker Buildx for multi-platform support
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
-
-    # Step 4: Log in to Azure Container Registry
-    - name: Log in to ACR
-      uses: azure/docker-login@v1
-      with:
-        login-server: manicontainer.azurecr.io
-        username: ${{ secrets.ACR_USERNAME }}  # Ensure this secret is defined
-        password: ${{ secrets.ACR_PASSWORD }}  # Ensure this secret is defined
-
-    # Step 5: Build and push Docker image to ACR
-    - name: Build and push Docker image to ACR
-      run: |
-       docker build --no-cache -f Dockerfile -t manicontainer.azurecr.io/backendcode:${{ github.sha }} .
-        docker push manicontainer.azurecr.io/backendcode:${{ github.sha }}
-       docker tag manicontainer.azurecr.io/backendcode:${{ github.sha }} manicontainer.azurecr.io/backendcode:latest
-       docker push manicontainer.azurecr.io/backendcode:latest
-
-    # Step 6: Upload Kubernetes manifests
-    - name: Upload Kubernetes manifests
-      uses: actions/upload-artifact@v4  # Updated version
-      with:
-        name: manifests
-        path: ./manifests/
-
-  # Deploy job
+      - name: Checkout code
+        uses: actions/checkout@v2
+ 
+      # Set up Java using Temurin (Adoptium's updated distribution name)
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '23'  # Use JDK 23 (or whichever version you need)
+          distribution: 'temurin'
+          java-package: 'jdk'
+ 
+      # Build the application using Maven
+      - name: Build with Maven
+        run: mvn clean install  # Ensure the target/ems-backend-0.0.1-SNAPSHOT.jar file is created
+ 
+      - name: List target directory for verification
+        run: ls -l target/  # Verify the JAR file is generated
+ 
+      # Log in to Azure Container Registry
+      - name: Log in to Azure Container Registry
+        uses: azure/docker-login@v2
+        with:
+          login-server: emsregistery.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+ 
+      # Build and push Docker image
+      - name: Build and push Docker image
+        run: |
+          IMAGE_TAG=$(git rev-parse --short HEAD)
+          docker build -t manicontainer.azurecr.io/chm80076/backendcode:$IMAGE_TAG .
+          docker push manicontainer.azurecr.io/chm80076/backendcode:$IMAGE_TAG
+ 
   deploy:
-    runs-on: ubuntu-latest
     needs: build
-
+    runs-on: ubuntu-latest
+ 
     steps:
-    # Step 1: Checkout code
-    - name: Checkout repository
-      uses: actions/checkout@v2
-
-    # Step 2: Set up Azure login
-    - name: Log in to Azure for Deploy
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}  # Your subscription-id
-
-    # Step 3: Set up kubectl
-    - name: Set up kubectl
-      uses: azure/setup-kubectl@v1
-
-    # Step 4: Configure kubectl to access AKS cluster
-    - name: Get AKS credentials
-      run: |
-        az aks get-credentials --resource-group <your-resource-group> --name <your-aks-cluster> --admin
-
-    # Step 5: Download Kubernetes manifests
-    - name: Download Kubernetes manifests
-      uses: actions/download-artifact@v4  # Updated version
-      with:
-        name: manifests
-        path: ./manifests/
-
-    # Step 6: Deploy to AKS using kubectl
-    - name: Deploy to AKS
-      run: |
-        kubectl apply -f ./manifests/deployment.yml
-        kubectl apply -f ./manifests/service.yml
-        kubectl rollout status deployment/firstproject-deployment
-
-    # Step 7: Clean up
-    - name: Clean up manifests
-      run: |
-        rm -rf ./manifests/
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v2
+        with:
+          kubeconfig: ${{ secrets.AKS_KUBECONFIG }}
+ 
+      - name: Deploy to AKS
+        run: |
+          kubectl apply -f deployment.yaml
+          kubectl apply -f service.yaml
+          kubectl rollout status deployment/your-deployment-name
