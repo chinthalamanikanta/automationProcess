@@ -24,20 +24,6 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
-    # Step 3: Log in to Azure
-    - name: Log in to Azure
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}  # Ensure this secret contains a valid JSON string
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}  # Your client-id
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}  # Your tenant-id
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}  # Your subscription-id
-        enable-AzPSSession: false  # Optional: false by default
-        environment: azurecloud  # Optional: defaults to 'azurecloud'
-        allow-no-subscriptions: false  # Optional: false by default
-        audience: api://AzureADTokenExchange  # Optional: Specify your audience if needed
-        auth-type: SERVICE_PRINCIPAL  # Ensure this is correctly set to SERVICE_PRINCIPAL
-
     # Step 4: Log in to Azure Container Registry
     - name: Log in to ACR
       uses: azure/docker-login@v1
