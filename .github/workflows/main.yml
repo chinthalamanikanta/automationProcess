@@ -35,9 +35,9 @@ jobs:
     # Step 5: Build and push Docker image to ACR
     - name: Build and push Docker image to ACR
       run: |
-        docker build -f subfolder/Dockerfile -t manicontainer.azurecr.io/firstproject:${{ github.sha }} .
-        docker push manicontainer.azurecr.io/firstproject:${{ github.sha }}
-        docker push manicontainer.azurecr.io/firstproject:latest
+        docker build -f subfolder/Dockerfile -t manicontainer.azurecr.io/backendcode:${{ github.sha }} .
+        docker push manicontainer.azurecr.io/backendcode:${{ github.sha }}
+        docker push manicontainer.azurecr.io/backendcode:latest
 
     # Step 6: Upload Kubernetes manifests
     - name: Upload Kubernetes manifests
