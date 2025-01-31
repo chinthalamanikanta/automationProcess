@@ -51,7 +51,7 @@ jobs:
 
     # Step 6: Upload Kubernetes manifests
     - name: Upload Kubernetes manifests
-      uses: actions/upload-artifact@v3  # Updated version
+      uses: actions/upload-artifact@v4  # Updated version
       with:
         name: manifests
         path: ./manifests/
@@ -86,7 +86,7 @@ jobs:
 
     # Step 5: Download Kubernetes manifests
     - name: Download Kubernetes manifests
-      uses: actions/download-artifact@v3  # Updated version
+      uses: actions/download-artifact@v4  # Updated version
       with:
         name: manifests
         path: ./manifests/
