@@ -60,7 +60,7 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Get AKS Credentials
-        run: az aks get-credentials --resource-group <your-resource-group> --name <your-aks-cluster-name>
+        run: az aks get-credentials --resource-group maniRG --name maniaks
 
       - name: Set kubectl context
         run: kubectl config use-context <your-cluster-context>
