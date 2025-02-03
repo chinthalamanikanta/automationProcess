@@ -51,12 +51,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4  # Ensure code is checked out in deploy job
 
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v1
-        with:
-          kubeconfig: ${{ secrets.AKS_KUBECONFIG }}
+      - name: Install Azure CLI
+        uses: azure/CLI@v1
 
-      # Add steps for better debugging
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get AKS Credentials
+        run: az aks get-credentials --resource-group <your-resource-group> --name <your-aks-cluster-name>
+
+      - name: Set kubectl context
+        run: kubectl config use-context <your-cluster-context>
+
+      - name: Verify Kubernetes API connectivity
+        run: kubectl cluster-info
+
       - name: Print working directory
         run: pwd
 
@@ -78,6 +89,6 @@ jobs:
       # Deploy to AKS
       - name: Deploy to AKS
         run: |
-          kubectl apply -f /home/runner/work/automationProcess/automationProcess/k8s/deployment.yaml
-          kubectl apply -f /home/runner/work/automationProcess/automationProcess/k8s/service.yaml
+          kubectl apply -f /home/runner/work/automationProcess/automationProcess/k8s/deployment.yaml --validate=false
+          kubectl apply -f /home/runner/work/automationProcess/automationProcess/k8s/service.yaml --validate=false
           kubectl rollout status deployment/java-backend-deployment
