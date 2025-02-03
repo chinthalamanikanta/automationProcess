@@ -57,12 +57,14 @@ jobs:
       # Add a step to list all files for debugging (verify location of deployment.yaml and service.yaml)
       - name: List files in the repository
         run: ls -l  # This will list all files in the current working directory (root of the repository)
-
+    
+      - name: Print working directory
+        run: pwd
       
 
       # Deploy to AKS
       - name: Deploy to AKS
         run: |
-          kubectl apply -f k8s/deployment.yaml  # Make sure these files exist in the root of the repo
-          kubectl apply -f k8s/service.yaml     # Make sure these files exist in the root of the repo
+          kubectl apply -f $(pwd)/k8s/deployment.yaml  # Make sure these files exist in the root of the repo
+          kubectl apply -f $(pwd)/k8s/service.yaml     # Make sure these files exist in the root of the repo
           kubectl rollout status deployment/java-backend-deployment
