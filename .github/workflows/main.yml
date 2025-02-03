@@ -51,15 +51,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4  # Ensure code is checked out in deploy job
 
-      - name: Get AKS Credentials
-        run: az aks get-credentials --resource-group maniRG --name maniaks
-
-      - name: Set kubectl context
-        run: kubectl config use-context <your-cluster-context>
-
-      - name: Verify Kubernetes API connectivity
-        run: kubectl cluster-info
-
       - name: Print working directory
         run: pwd
 
