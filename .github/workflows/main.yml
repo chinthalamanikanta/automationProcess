@@ -58,6 +58,9 @@ jobs:
       - name: List files in the repository
         run: ls -l  # This will list all files in the current working directory (root of the repository)
 
+      - name: List files in the k8s directory
+        run: ls -l k8s/ 
+
       # Deploy to AKS
       - name: Deploy to AKS
         run: |
