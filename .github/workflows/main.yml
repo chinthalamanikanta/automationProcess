@@ -1,3 +1,4 @@
+im using below work flow:
 name: Build and Deploy to AKS
 
 on:
@@ -60,6 +61,6 @@ jobs:
       # Deploy to AKS
       - name: Deploy to AKS
         run: |
-          kubectl apply -f ./deployment.yaml  # Make sure these files exist in the root of the repo
-          kubectl apply -f ./service.yaml     # Make sure these files exist in the root of the repo
+          kubectl apply -f k8s/deployment.yaml  # Make sure these files exist in the root of the repo
+          kubectl apply -f k8s/service.yaml     # Make sure these files exist in the root of the repo
           kubectl rollout status deployment/java-backend-deployment

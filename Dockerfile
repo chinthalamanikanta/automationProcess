@@ -12,3 +12,5 @@ ENV SPRING_DATASOURCE_USERNAME=dhanush
 ENV SPRING_DATASOURCE_PASSWORD=Dhanush@12345
 # Command to run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
+
+#comment
