@@ -1,4 +1,3 @@
-
 name: Build and Deploy to AKS
 
 on:
@@ -49,22 +48,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4  # Ensure code is checked out in deploy job
+
       - name: Set up kubectl
-        uses: azure/setup-kubectl@v1  # Use v1 instead of v2 for setup-kubectl action
+        uses: azure/setup-kubectl@v1
         with:
           kubeconfig: ${{ secrets.AKS_KUBECONFIG }}
 
-      # Add a step to list all files for debugging (verify location of deployment.yaml and service.yaml)
-      - name: List files in the repository
-        run: ls -l  # This will list all files in the current working directory (root of the repository)
-    
+      # Add steps for better debugging
       - name: Print working directory
         run: pwd
-      
+
+      - name: List files in the root directory
+        run: ls -l
+
+      - name: List files in the home directory
+        run: ls -l /home/runner/
+
+      - name: List files in the work directory
+        run: ls -l /home/runner/work/
+
+      - name: List files in the current repository directory
+        run: ls -l /home/runner/work/automationProcess/automationProcess/
+
+      - name: List files in the k8s directory
+        run: ls -l /home/runner/work/automationProcess/automationProcess/k8s/
 
       # Deploy to AKS
       - name: Deploy to AKS
         run: |
-          kubectl apply -f $(pwd)/k8s/deployment.yaml  # Make sure these files exist in the root of the repo
-          kubectl apply -f $(pwd)/k8s/service.yaml     # Make sure these files exist in the root of the repo
+          kubectl apply -f /home/runner/work/automationProcess/automationProcess/k8s/deployment.yaml
+          kubectl apply -f /home/runner/work/automationProcess/automationProcess/k8s/service.yaml
           kubectl rollout status deployment/java-backend-deployment
