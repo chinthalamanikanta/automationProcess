@@ -1,4 +1,4 @@
-im using below work flow:
+
 name: Build and Deploy to AKS
 
 on:
@@ -57,6 +57,9 @@ jobs:
       # Add a step to list all files for debugging (verify location of deployment.yaml and service.yaml)
       - name: List files in the repository
         run: ls -l  # This will list all files in the current working directory (root of the repository)
+
+      - name: List files in the k8s directory
+        run: ls -l k8s/ 
 
       # Deploy to AKS
       - name: Deploy to AKS
