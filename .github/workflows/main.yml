@@ -54,8 +54,10 @@ jobs:
           kubeconfig: ${{ secrets.AKS_KUBECONFIG }}
 
       # Add a step to list all files for debugging (verify location of deployment.yaml and service.yaml)
-      - name: List files in the repository
-        run: ls -l  # This will list all files in the current working directory (root of the repository)
+    
+        - name: List all files in repository for debugging
+          run: ls -R
+
 
       # Deploy to AKS
       - name: Deploy to AKS
