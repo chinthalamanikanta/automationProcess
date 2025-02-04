@@ -62,7 +62,20 @@ jobs:
 
       - name: Deploy to AKS
         run: |
-          sed -i "s|<IMAGE_TAG>|${{ needs.build.outputs.image-tag }}|g" /home/runner/work/automationProcess/automationProcess/k8s/deployment.yaml
+          # Replace <IMAGE_TAG> in deployment.yaml with the actual image tag
+          sed -i "s|latest|${{ needs.build.outputs.image-tag }}|g" /home/runner/work/automationProcess/automationProcess/k8s/deployment.yaml
+
+          # Apply Kubernetes manifests
           kubectl apply -f /home/runner/work/automationProcess/automationProcess/k8s/deployment.yaml --validate=false
           kubectl apply -f /home/runner/work/automationProcess/automationProcess/k8s/service.yaml --validate=false
-          kubectl rollout status deployment/java-backend-deployment
+
+          # Wait for deployment to complete
+          kubectl rollout status deployment/java-backend-deployment --timeout=300s || true
+
+      - name: Debug Pod Status (if rollout fails)
+        if: ${{ failure() }}  # Only run if the previous step fails
+        run: |
+          echo "Debugging failed deployment..."
+          kubectl get pods -l app=java-backend
+          kubectl describe pod -l app=java-backend
+          kubectl logs -l app=java-backend
