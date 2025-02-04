@@ -13,7 +13,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Set up Java using Temurin (Adoptium's updated distribution name)
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
@@ -21,14 +20,9 @@ jobs:
           distribution: 'temurin'
           java-package: 'jdk'
 
-      # Build the application using Maven
       - name: Build with Maven
         run: mvn clean install
 
-      - name: List target directory for verification
-        run: ls -l target/
-
-      # Log in to Azure Container Registry
       - name: Log in to Azure Container Registry
         uses: azure/docker-login@v2
         with:
@@ -36,12 +30,16 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
-      # Build and push Docker image
       - name: Build and push Docker image
+        id: build-image
         run: |
           IMAGE_TAG=$(git rev-parse --short HEAD)
-          docker build -t manicontainer.azurecr.io/chm80076/backendcode:$IMAGE_TAG .
-          docker push manicontainer.azurecr.io/chm80076/backendcode:$IMAGE_TAG
+          docker build -t manicontainer.azurecr.io/chm80076/backendcode:latest .
+          docker push manicontainer.azurecr.io/chm80076/backendcode:latest
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+    outputs:
+      image-tag: ${{ steps.build-image.outputs.IMAGE_TAG }}
 
   deploy:
     needs: build
@@ -49,29 +47,22 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # Ensure code is checked out in deploy job
+        uses: actions/checkout@v4
 
-      - name: Print working directory
-        run: pwd
+      - name: Authenticate with Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: List files in the root directory
-        run: ls -l
+      - name: Set AKS context
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: maniRG
+          cluster-name: maniaks
 
-      - name: List files in the home directory
-        run: ls -l /home/runner/
-
-      - name: List files in the work directory
-        run: ls -l /home/runner/work/
-
-      - name: List files in the current repository directory
-        run: ls -l /home/runner/work/automationProcess/automationProcess/
-
-      - name: List files in the k8s directory
-        run: ls -l /home/runner/work/automationProcess/automationProcess/k8s/
-
-      # Deploy to AKS
       - name: Deploy to AKS
         run: |
+          sed -i "s|<IMAGE_TAG>|${{ needs.build.outputs.image-tag }}|g" /home/runner/work/automationProcess/automationProcess/k8s/deployment.yaml
           kubectl apply -f /home/runner/work/automationProcess/automationProcess/k8s/deployment.yaml --validate=false
           kubectl apply -f /home/runner/work/automationProcess/automationProcess/k8s/service.yaml --validate=false
           kubectl rollout status deployment/java-backend-deployment
