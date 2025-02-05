@@ -13,4 +13,3 @@ spec:
       targetPort: 8088   # The internal port your app listens on inside the container
   type: LoadBalancer
 
-  #
