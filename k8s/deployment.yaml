@@ -1,22 +1,43 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: java-backend-deployment
+  name: backend-deployment
+  labels:
+    app: backend
 spec:
-  replicas: 3
+  replicas: 2  # Number of pods you want to run (scale as needed)
   selector:
     matchLabels:
-      app: java-backend
+      app: backend
   template:
     metadata:
       labels:
-        app: java-backend
+        app: backend
     spec:
       containers:
-      - name: java-backend
-        image: maniacr.azurecr.io/backendcode:latest
-        ports:
-        - containerPort: 8080
-        env:
-        - name: SPRING_PROFILES_ACTIVE
-          value: "prod"
+        - name: backend-container
+          image: manicontainer.azurecr.io/chm80076/ravi:latest  # Replace with your image and tag
+          ports:
+            - containerPort: 8088  # Make sure this matches the port your app listens on
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"  # If you're using Spring profiles, set it as per your needs
+          resources:
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+            requests:
+              memory: "512Mi"
+              cpu: "0.5"
+          livenessProbe:
+            httpGet:
+              path: /actuator/health  # Example for Spring Boot apps, adjust as needed
+              port: 8088
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /actuator/health  # Example for Spring Boot apps, adjust as needed
+              port: 8088
+            initialDelaySeconds: 5
+            periodSeconds: 20
