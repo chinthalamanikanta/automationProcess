@@ -52,7 +52,7 @@ jobs:
       - name: Deploy to AKS
         run: |
           # Replace <IMAGE_TAG> in deployment.yaml with the actual image tag
-          sed -i "s|latest|${{ needs.build.outputs.image-tag }}|g" /home/runner/work/akscluster/akscluster/k8s/deployment.yaml
+          sed -i "s|latest|${{ needs.build.outputs.image-tag }}|g" /home/runner/work/automationProcess/automationProcess/k8s/deployment.yaml
           # Apply Kubernetes manifests
           kubectl apply -f /home/runner/work/automationProcess/automationProcess/k8s/deployment.yaml --validate=false
           kubectl apply -f /home/runner/work/automationProcess/automationProcess/k8s/service.yaml --validate=false
