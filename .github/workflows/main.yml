@@ -41,4 +41,4 @@ jobs:
         az aks get-credentials --resource-group maniRG --name maniaks
         kubectl apply -f k8s/deployment.yml
         kubectl apply -f k8s/service.yml
-        #comment
+        
