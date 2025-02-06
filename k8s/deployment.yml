@@ -16,4 +16,4 @@ spec:
         - name: spring-boot-app
           image: manicontainer.azurecr.io/chm80076/ravi:latest
           ports:
-            - containerPort: 8088
+            - containerPort: 8085
