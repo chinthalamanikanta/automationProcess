@@ -25,7 +25,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/employeeManager")
-@CrossOrigin(origins = "http://20.249.177.29", allowedMethods = {"GET", "POST", "OPTIONS", "PUT", "DELETE"})
+@CrossOrigin(origins = "http://20.249.177.29:3000")
 // Adjust as needed for your frontend
 public class EmployeeManagerController {
 
